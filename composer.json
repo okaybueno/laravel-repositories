@@ -1,0 +1,26 @@
+{
+    "name": "okaybueno/laravel-repositories",
+    "description": "A package that provides a neat implementation for integrating the Repository pattern with Laravel & Eloquent.",
+    "authors": [
+        {
+            "name": "Jesús Espejo",
+            "email": "jesus@okaybueno.com",
+            "homepage": "http://www.okaybueno.com",
+            "role": "Tech Strategy Partner"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "illuminate/config": "5.*",
+        "illuminate/database": "5.*",
+        "illuminate/console": "5.*",
+        "illuminate/pagination": "5.*",
+        "illuminate/filesystem": "5.*",
+        "webpatser/laravel-uuid": "2.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "OkayBueno\\LaravelRepositories\\": ""
+        }
+    }
+}

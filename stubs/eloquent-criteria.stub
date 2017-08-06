@@ -1,0 +1,30 @@
+<?php
+
+namespace {{criteriaNamespace}};
+
+use OkayBueno\LaravelRepositories\Criteria\CriteriaInterface;
+
+/**
+ * Class {{criteriaClassName}}
+ * @package {{criteriaNamespace}}
+ */
+class {{criteriaClassName}} implements CriteriaInterface
+{
+
+    public function __construct()
+    {
+
+    }
+
+
+    /**
+    * @param mixed $queryBuilder
+    * @return mixed
+    */
+    public function apply( $queryBuilder )
+    {
+        // Do something with the query builder and return it.
+        return $queryBuilder;
+    }
+
+}
