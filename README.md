@@ -122,10 +122,6 @@ Now we need to configure the `config/repositories.php` file to match our paths a
     'repositories_path' => app_path('MyApp/Repositories'),
     
     'criterias_path' => app_path('MyApp/Repositories/Criteria'),
-    
-    'bindings' => [
-        'eloquent' => 'default',
-    ],
 
 ```
 
@@ -441,10 +437,52 @@ repository interface.
 - *Countable*: If you any any column that acts as a counter, you can use this trait to add counting functionalities to 
  your repository (incremente/decrement value in the given amount). You must also implement the *CountableInterface* in 
  your repository and your repository interface.
+ 
+ ## Extending the package
+ 
+ You can create your own implementations to support, for instance, SQLite or MongoDB. The plan is to add more and more
+ engines, but if you need something on your own you can create your own engines.
+ 
+ To add a new engine, its class needs to implement the `RepositoryInterface` interface and all the methods defined there.
+ You can place this class wherever you want, as the binding is done manually in the config (`config/repositories.php`) file:
+ 
+ ```php
+ 
+     'supported_implementations' =>  [
+             'eloquent' => \OkayBueno\Repositories\src\EloquentRepository::class,
+             'mongodb' => \MyApp\Repositories\Custom\MongoDbRepository::Class
+         ]
+ 
+ ```
+
+You can also manually specify which repositories should be mapped by this engine. All the repositories which are not
+explicitly mapped will be mapped to the default driver (eloquent):
+ 
+  ```php
+  
+      'bindings' => [
+              'eloquent' => 'default',
+              'mongodb' => [
+                   'LogRepositoryInterface',
+                   'EventTrackerRepositoryInterface'
+              ]
+          ],
+  
+  ```
+  
+  Of course, you can use the generators to create criterias and repositories:
+ 
+   ```php
+   
+       php artisan make:repository MyApp\\Models\\Log --implementation=mongodb
+       
+       php artisan make:criteria Events\\FilterLogsOlderThanAWeek --implementation=mongodb
+   
+   ```
 
 ## Changelog
 
---No version released--
+--No official version released--
 
 
 ## Credits
@@ -462,4 +500,4 @@ repository interface.
 
 ## License
 
-??
+TBD.
