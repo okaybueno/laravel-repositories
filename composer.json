@@ -1,5 +1,5 @@
 {
-    "name": "okaybueno/repositories",
+    "name": "okaybueno/laravel-repositories",
     "description": "A package that provides a neat implementation to integrate the Repository pattern in Laravel with Eloquent.",
     "authors": [
         {
