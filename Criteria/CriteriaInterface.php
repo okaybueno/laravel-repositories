@@ -1,10 +1,10 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\Criteria;
+namespace OkayBueno\Repositories\Criteria;
 
 /**
  * Interface CriteriaInterface
- * @package OkayBueno\LaravelRepositories\Criteria
+ * @package OkayBueno\Repositories\Criteria
  */
 interface CriteriaInterface
 {

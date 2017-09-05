@@ -1,5 +1,5 @@
 {
-    "name": "okaybueno/laravel-repositories",
+    "name": "okaybueno/repositories",
     "description": "A package that provides a neat implementation to integrate the Repository pattern in Laravel with Eloquent.",
     "authors": [
         {
@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=7.0",
         "illuminate/config": "5.*",
         "illuminate/database": "5.*",
         "illuminate/console": "5.*",
@@ -19,7 +19,7 @@
     },
     "autoload": {
         "psr-4": {
-            "OkayBueno\\LaravelRepositories\\": ""
+            "OkayBueno\\Repositories\\": ""
         }
     }
 }

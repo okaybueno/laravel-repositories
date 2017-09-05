@@ -1,14 +1,14 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\src;
+namespace OkayBueno\Repositories\src;
 
-use OkayBueno\LaravelRepositories\Criteria\CriteriaInterface;
-use OkayBueno\LaravelRepositories\RepositoryInterface;
+use OkayBueno\Repositories\Criteria\CriteriaInterface;
+use OkayBueno\Repositories\RepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class EloquentRepository
- * @package OkayBueno\LaravelRepositories\src
+ * @package OkayBueno\Repositories\src
  */
 abstract class EloquentRepository implements RepositoryInterface
 {
@@ -17,7 +17,7 @@ abstract class EloquentRepository implements RepositoryInterface
     protected $with;
     protected $skipCriteria;
     protected $criteria;
-    private $cleanModel;
+    private $modelClassName;
 
     /**
      * @param Model $model
@@ -25,8 +25,11 @@ abstract class EloquentRepository implements RepositoryInterface
     public function __construct( Model $model )
     {
         $this->model = $model;
+
         // A clean copy of the model is needed when the scope needs to be reset.
-        $this->cleanModel = $model;
+        $reflex = new \ReflectionClass( $model );
+        $this->modelClassName = $reflex->getName();
+
         $this->skipCriteria = FALSE;
         $this->criteria = [];
     }
@@ -196,14 +199,27 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         $cleanFields = $this->cleanUnfillableFields( $data );
 
-        $this->applyCriteria();
-        if ( !is_null( $value ) ) $this->model = $this->model->where( $field, $value);
+        if ( !is_null( $value ) )
+        {
+            // Single update.
+            $this->model = $this->model->where( $field, $value);
 
-        $updateObject = $this->model->update( $cleanFields );
+            foreach( $cleanFields as $F => $V ) $this->model->{$F} = $V;
+
+            $this->model->save();
+
+            $returnedVal = $this->model;
+        } else
+        {
+            // Mass update.
+            $this->applyCriteria();
+
+            $returnedVal = $this->model->update( $cleanFields );
+        }
 
         $this->resetScope();
 
-        return $updateObject;
+        return $returnedVal;
     }
 
     /**
@@ -247,7 +263,7 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         $this->criteria = [];
         $this->skipCriteria( FALSE );
-        $this->model = $this->cleanModel;
+        $this->model = new $this->modelClassName();
         return $this;
     }
 
@@ -292,7 +308,7 @@ abstract class EloquentRepository implements RepositoryInterface
      */
     private function cleanUnfillableFields( array $data )
     {
-        $fillableFields = $this->cleanModel->getFillable();
+        $fillableFields = $this->model->getFillable();
 
         foreach( $data as $key => $value )
         {

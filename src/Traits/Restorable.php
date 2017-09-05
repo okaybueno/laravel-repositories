@@ -1,10 +1,10 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\src\Traits;
+namespace OkayBueno\Repositories\src\Traits;
 
 /**
  * Class Restorable
- * @package OkayBueno\LaravelRepositories\Traits
+ * @package OkayBueno\Repositories\Traits
  */
 trait Restorable
 {

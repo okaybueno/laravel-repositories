@@ -1,12 +1,12 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\Criteria\src;
+namespace OkayBueno\Repositories\Criteria\Eloquent;
 
-use OkayBueno\LaravelRepositories\Criteria\CriteriaInterface;
+use OkayBueno\Repositories\Criteria\CriteriaInterface;
 
 /**
  * Class OrderBy
- * @package OkayBueno\LaravelRepositories\Criteria\src
+ * @package OkayBueno\Repositories\Criteria\src
  */
 class OrderBy implements CriteriaInterface
 {

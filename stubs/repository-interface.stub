@@ -1,14 +1,14 @@
 <?php
 
-namespace {{interfaceNamespace}};
+namespace {{repositoryInterfaceNamespace}};
 
-use OkayBueno\LaravelRepositories\RepositoryInterface;
+use OkayBueno\Repositories\RepositoryInterface;
 
 /**
- * Interface {{interfaceName}}
- * @package {{interfaceNamespace}}
+ * Interface {{repositoryInterfaceName}}
+ * @package {{repositoryInterfaceNamespace}}
  */
-interface {{interfaceName}} extends RepositoryInterface
+interface {{repositoryInterfaceName}} extends RepositoryInterface
 {
 
 }

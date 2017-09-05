@@ -4,31 +4,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Models namespace
-    |--------------------------------------------------------------------------
-    |
-    | If you want to use the generators shipped with the package, you need
-    | to specify the namespace where you models are living at.
-    |
-    */
-    'models_namespace' => 'MyApp\Models',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Interfaces & repositories base path
-    |--------------------------------------------------------------------------
-    |
-    | By default the package considers that your interfaces live in
-    | app/Repositories. You can however set this path to whatever value
-    | you want. I personally like to locate all my project files inside a
-    | folder located in "app", something like "app/MyApp/Repositories".
-    |
-    */
-    'path' => app_path('MyApp/Repositories'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Interfaces namespace
+    | Repository interfaces namespace
     |--------------------------------------------------------------------------
     |
     | You can specify the namespace used in your repositories interfaces.
@@ -37,56 +13,74 @@ return [
     | application: "MyApp\Repositories".
     |
     */
-    'namespace' => 'MyApp\Repositories',
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Criteria base path
-    |--------------------------------------------------------------------------
-    |
-    | Your criteria needs to live somewhere, so please specify here the base
-    | path of your criteria. Skip the implementation.
-    |
-    */
-    'criteria_path' => app_path('MyApp/Repositories/Criteria'),
-
+    'repository_interfaces_namespace' => 'App\Repositories',
 
     /*
     |--------------------------------------------------------------------------
-    | Criteria namespace
+    | Criterias namespace
     |--------------------------------------------------------------------------
     |
     | Please specify the namespace for the criteria. The implementation will
     | be appended.
     |
     */
-    'criteria_namespace' => 'MyApp\Repositories\Criteria',
+    'criterias_namespace' => 'App\Repositories\Criteria',
 
     /*
     |--------------------------------------------------------------------------
-    | Implementation
+    | Base repositories path
+    |--------------------------------------------------------------------------
+    |
+    | By default the package considers that your interfaces live in
+    | App/Repositories. You can however set this path to whatever value
+    | you want. I personally like to locate all my project files inside a
+    | folder located in "app", something like "app/MyApp/Repositories".
+    |
+    */
+    'repositories_path' => app_path('Repositories'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Base criteria path
+    |--------------------------------------------------------------------------
+    |
+    | Your criteria needs to live somewhere, so please specify here the base
+    | path of your criteria. Skip the implementation.
+    |
+    */
+    'criterias_path' => app_path('Repositories/Criteria'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Implementation bindings
     |--------------------------------------------------------------------------
     |
     | As we can have same interface but different implementations that support
-    | our repositories, we can define the implementation that we want to use.
-    | For now, only Eloquent is supported. This is important because by default
-    | our repositories should live in a sub-directory located in 'path' and
-    | name the same way than this "implementation" variable. This is done
-    | because the repositories are automatically mapped and loaded based on
-    | a combination of the implementation and the path. So to say: if you have
-    | your repositories under "app/Repositories", and the implementation is
-    | 'Eloquent', the system will automatically try to bind every file
-    | located in 'app/Repositories/MyCustomRepositoryInterface.php' to a file
-    | located in 'app/Repositories/Eloquent/MyCustomRepository.php'. The namespace
-    | of the implementation must also be preceded by this value. In the previous
-    | example, the namespace of our repository would be: "App\Repositories\Eloquent".
-    | Name this configuration value exactly the same way that your folder.
+    | our repositories, we can define the implementation that we want to use for
+    | each of the repositories that we have in our application. By default,
+    | Eloquent is used. Sometimes you might find cases where you have to
+    | support several data-stores (like MariaDB, MongoDB and PostgreSQL) at the
+    | same time. Although this package supports only Eloquent now, the plan is
+    | to add more engines/ORMs/data-stores, so I want to keep this flexible.
     |
-    | Values supported: Eloquent.
+    | In this configuration setting you can specific which repository should
+    | resolve to each engine. You can't have the same repository bind to more
+    | than one engine, but you can have different repositories bind to different
+    | engines.
+    |
+    | All the repository interfaces not bind will be bind to the default
+    | engine.
+    |
+    | Values supported: 'default', array of repository interface names.
     |
     */
-    'default_implementation' => 'Eloquent',
+    'bindings' => [
+        'eloquent' => 'default',
+        // 'eloquent' => [
+        //     'UserRepositoryInterface',
+        //     'PostRepositoryInterface'
+        // ]
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -96,9 +90,24 @@ return [
     | Sometimes you may wish to skip the auto-binding of some repositories.
     | You can specify here what of those INTERFACES should be skipped from the
     | auto-binder. You must specify the name of the file, as the skip happens
-    | when scanning the repository.
+    | when scanning the repositories.
     |
     */
-    'skip' => [ 'BaseRepositoryInterface.php' ],
+    'skip' => [
+        'BaseRepositoryInterface'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Supported implementations
+    |--------------------------------------------------------------------------
+    |
+    | Array with the supported implementations. This allow you to extend the
+    | package to your needs.
+    |
+    */
+    'supported_implementations' =>  [
+        'eloquent' => \OkayBueno\Repositories\src\EloquentRepository::class,
+    ]
 
 ];

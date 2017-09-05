@@ -1,35 +1,26 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\Commands;
+namespace OkayBueno\Repositories\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
 
 /**
  * Class MakeRepositoryCommand
- * @package OkayBueno\LaravelRepositories\Commands
+ * @package OkayBueno\Repositories\Commands
  */
-class MakeRepositoryCommand extends Command
+class MakeRepositoryCommand extends MakeBaseCommand
 {
 
-    protected $signature = 'make:repository {model-name}';
+    protected $signature = 'make:repository {model} {--implementation=}';
     protected $description = 'Create a new repository for the given model. This will create a repository interface, the implementation for Eloquent and will inject the model on it.';
 
-    protected $filesystem;
-    private $composer;
+    private $implementation;
+    private $modelClassShortName;
+    private $modelClassNamespace;
+    private $repositoryInterfaceName;
+    private $repositoryInterfaceNamespace;
+    private $repositoryClassName;
+    private $repositoryClassNamespace;
 
-
-    /**
-     * @param Filesystem $filesystem
-     */
-    public function __construct(
-        Filesystem $filesystem
-    )
-    {
-        parent::__construct();
-        $this->filesystem = $filesystem;
-        $this->composer = app()['composer'];
-    }
 
     /**
      * Execute the console command.
@@ -38,16 +29,31 @@ class MakeRepositoryCommand extends Command
      */
     public function fire()
     {
-        $modelName = $this->argument('model-name');
-        $defaultImplementation = config( 'repositories.default_implementation' );
-        $modelsNamespace = rtrim( config( 'repositories.models_namespace' ), '\\' ) . '\\';
+        $model = $this->argument('model');
+        $implementation = strtolower( $this->option('implementation') );
 
-        $modelToBeInjected = $modelsNamespace.$modelName;
-
-        if ( class_exists( $modelToBeInjected ) )
+        if ( class_exists( $model ) )
         {
-            $this->createInterface( $modelName );
-            $this->createRepository( $modelName, $defaultImplementation );
+            $supportedImplementations = array_keys( config( 'repositories.supported_implementations' ) );
+
+            if ( $implementation )
+            {
+                if ( !in_array( $implementation, $supportedImplementations ) )
+                {
+                    $this->error("The implementation '$implementation' is not supported at this moment. Want me to provide support? Open an issue :).");
+
+                    return FALSE;
+                }
+            } else
+            {
+                $implementation = $this->findDefaultImplementation();
+            }
+
+            // Populate the properties with the right values.
+            $this->populateValuesForProperties( $model, $implementation );
+
+            $this->createInterface();
+            $this->createRepository();
 
             $this->info('Generating autoload...');
             $this->composer->dumpAutoloads();
@@ -55,111 +61,106 @@ class MakeRepositoryCommand extends Command
 
         } else
         {
-            $this->error( "The '$modelName' ('$modelToBeInjected') model does not exist. Please check that the namespace and the class name are valid.");
-        }
-    }
-
-
-    /**
-     * @param $path
-     */
-    protected function makeDirectory( $path )
-    {
-        if ( !$this->filesystem->isDirectory( $path ) )
-        {
-            $this->filesystem->makeDirectory( $path, 0775, true, true);
+            $this->error( "The '$this->modelClassShortName' ('$this->modelClassNamespace\\$this->modelClassShortName') model does not exist. Please check that the namespace and the class name are valid.");
         }
     }
 
     /**
-     * @param $modelName
-     * @param string $implementation
+     * @param $model
+     * @param $implementation
      */
-    protected function createRepository( $modelName, $implementation = 'Eloquent' )
+    protected function populateValuesForProperties( $model, $implementation )
     {
-        $className = $modelName.'Repository';
-        $interfaceName = $modelName.'RepositoryInterface';
+        $modelClass = new \ReflectionClass( $model );
 
-        $basePath = config( 'repositories.path' ).'/'.$implementation;
+        $this->implementation = $implementation;
 
-        $classFilePath = $basePath.'/'.$className.'.php';
+        $this->modelClassShortName = $modelClass->getShortName();
+        $this->modelClassNamespace = $modelClass->getNamespaceName();
+
+        $this->repositoryClassName = $this->modelClassShortName.'Repository';
+        $this->repositoryInterfaceName = $this->repositoryClassName.'Interface';
+
+        $this->repositoryInterfaceNamespace = rtrim( config( 'repositories.repository_interfaces_namespace' ), '\\' );
+        $this->repositoryClassNamespace = $this->repositoryInterfaceNamespace.'\\'.ucfirst( $implementation );
+    }
+
+    /**
+     *
+     */
+    protected function createRepository()
+    {
+        $basePath = config( 'repositories.repositories_path' ).'/'.ucfirst( $this->implementation );
+
+        $classFilePath = $basePath.'/'.$this->repositoryClassName.'.php';
 
         $this->makeDirectory( $basePath );
 
         if ( !$this->filesystem->exists( $classFilePath ) )
         {
             // Read the stub and replace
-            $this->filesystem->put( $classFilePath, $this->compileRepositoryEloquentStub( $interfaceName, $className, $modelName ) );
-            $this->info("'$implementation' implementation created successfully for '$modelName'.");
+            $this->filesystem->put( $classFilePath, $this->compileRepositoryStub() );
+            $this->info("'".ucfirst( $this->implementation )."' implementation created successfully for '$this->modelClassShortName'.");
             $this->composer->dumpAutoloads();
         } else
         {
-            $this->error("The repository '$basePath' already exists, so it was skipped.");
+            $this->error("The repository '$classFilePath' already exists, so it was skipped.");
         }
     }
 
+
     /**
-     * @param $modelName
+     *
      */
-    protected function createInterface( $modelName )
+    protected function createInterface()
     {
-        $interfaceName = $modelName.'RepositoryInterface';
+        $repositoriesBasePath = config( 'repositories.repositories_path' );
 
-        $repositoriesBasePath = config( 'repositories.path' );
-
-        $interfaceFilePath = $repositoriesBasePath.'/'.$interfaceName.'.php';
+        $interfaceFilePath = $repositoriesBasePath.'/'.$this->repositoryInterfaceName.'.php';
 
         $this->makeDirectory( $repositoriesBasePath );
 
         if ( !$this->filesystem->exists( $interfaceFilePath ) )
         {
             // Read the stub and replace
-            $this->filesystem->put( $interfaceFilePath, $this->compileRepositoryInterfaceStub( $interfaceName ) );
-            $this->info("Interface created successfully for '$modelName'.");
+            $this->filesystem->put( $interfaceFilePath, $this->compileRepositoryInterfaceStub() );
+            $this->info("Interface created successfully for '$this->modelClassShortName'.");
             $this->composer->dumpAutoloads();
         } else
         {
-            $this->error("The interface '$interfaceName' already exists, so it was skipped.");
+            $this->error("The interface '$this->repositoryInterfaceName' already exists, so it was skipped.");
         }
     }
 
 
     /**
-     * @param $interfaceName
-     * @return string
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     * @return MakeRepositoryCommand|string
      */
-    protected function compileRepositoryInterfaceStub( $interfaceName )
+    protected function compileRepositoryInterfaceStub()
     {
         $stub = $this->filesystem->get(__DIR__ . '/../stubs/repository-interface.stub');
 
         $stub = $this->replaceInterfaceNamespace( $stub );
-        $stub = $this->replaceInterfaceName( $stub, $interfaceName );
+        $stub = $this->replaceInterfaceName( $stub );
 
         return $stub;
     }
 
     /**
-     * @param $interfaceName
-     * @param $eloquentImplementationClassName
-     * @param $modelName
-     * @return string
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     * @return mixed|MakeRepositoryCommand|string
      */
-    protected function compileRepositoryEloquentStub( $interfaceName, $eloquentImplementationClassName, $modelName )
+    protected function compileRepositoryStub()
     {
-        $stub = $this->filesystem->get(__DIR__ . '/../stubs/eloquent-repository.stub');
+        $stub = $this->filesystem->get(__DIR__ . '/../stubs/repository.stub');
 
         $stub = $this->replaceInterfaceNamespace( $stub );
-        $stub = $this->replaceInterfaceName( $stub, $interfaceName );
-        $stub = $this->replaceEloquentImplementationNamespace( $stub );
-        $stub = $this->replaceEloquentImplementationClassName( $stub, $eloquentImplementationClassName );
-        $stub = $this->replaceModelNamespace( $stub );
-        $stub = $this->replaceModelName( $stub, $modelName );
+        $stub = $this->replaceInterfaceName( $stub );
+        $stub = $this->replaceParentRepositoryClassNamespaceAndName( $stub );
+        $stub = $this->replaceRepositoryClassNamespaceAndName( $stub );
+        $stub = $this->replaceModelClassNamespaceAndName( $stub );
 
         return $stub;
     }
-
 
     /**
      * @param $stub
@@ -167,63 +168,57 @@ class MakeRepositoryCommand extends Command
      */
     private function replaceInterfaceNamespace( $stub )
     {
-        $interfaceNamespace = rtrim( config( 'repositories.namespace' ), '\\' );
-
-        return str_replace('{{interfaceNamespace}}', $interfaceNamespace, $stub);
+        return str_replace('{{repositoryInterfaceNamespace}}', $this->repositoryInterfaceNamespace, $stub);
     }
 
     /**
      * @param $stub
-     * @param $interfaceName
-     * @return $this
+     * @return mixed
      */
-    private function replaceInterfaceName( $stub, $interfaceName )
+    private function replaceInterfaceName( $stub )
     {
-        return str_replace('{{interfaceName}}', $interfaceName, $stub);
+        return str_replace('{{repositoryInterfaceName}}', $this->repositoryInterfaceName, $stub);
     }
 
 
     /**
      * @param $stub
-     * @return $this
+     * @return mixed
      */
-    private function replaceEloquentImplementationNamespace( $stub )
+    private function replaceParentRepositoryClassNamespaceAndName( $stub )
     {
-        $eloquentImplementationNamespace = rtrim( config( 'repositories.namespace' ), '\\' ) . '\\Eloquent';
-        return str_replace('{{eloquentImplementationNamespace}}', $eloquentImplementationNamespace, $stub);
+        $implementations = config( 'repositories.supported_implementations' );
+
+        $parentClassImplementation = $implementations[ $this->implementation ];
+
+        $reflex = new \ReflectionClass($parentClassImplementation);
+
+        $stub = str_replace('{{parentRepositoryClassNamespace}}', $reflex->getNamespaceName(), $stub);
+
+        return str_replace('{{parentRepositoryClassName}}', $reflex->getShortName(), $stub);
+    }
+
+    /**
+     * @param $stub
+     * @return mixed
+     */
+    private function replaceRepositoryClassNamespaceAndName( $stub )
+    {
+        $stub = str_replace('{{repositoryClassName}}', $this->repositoryClassName, $stub);
+
+        return str_replace('{{repositoryClassNamespace}}', $this->repositoryClassNamespace, $stub);
     }
 
 
     /**
      * @param $stub
-     * @return $this
+     * @return mixed
      */
-    private function replaceModelNamespace( $stub )
+    private function replaceModelClassNamespaceAndName( $stub )
     {
-        $modelNamespace = rtrim( config( 'repositories.models_namespace' ), '\\' );
+        $stub = str_replace('{{modelName}}', $this->modelClassShortName, $stub);
 
-        return str_replace('{{modelNamespace}}', $modelNamespace, $stub);
+        return  str_replace('{{modelNamespace}}', $this->modelClassNamespace, $stub);
     }
-
-    /**
-     * @param $stub
-     * @param $modelName
-     * @return $this
-     */
-    private function replaceModelName( $stub, $modelName )
-    {
-        return str_replace('{{modelName}}', $modelName, $stub);
-    }
-
-    /**
-     * @param $stub
-     * @param $eloquentImplementationClassName
-     * @return $this
-     */
-    private function replaceEloquentImplementationClassName( $stub, $eloquentImplementationClassName )
-    {
-        return str_replace('{{eloquentImplementationClassName}}', $eloquentImplementationClassName, $stub);
-    }
-
 
 }
