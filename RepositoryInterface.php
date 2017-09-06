@@ -1,12 +1,12 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories;
+namespace OkayBueno\Repositories;
 
-use OkayBueno\LaravelRepositories\Criteria\CriteriaInterface;
+use OkayBueno\Repositories\Criteria\CriteriaInterface;
 
 /**
  * Interface RepositoryInterface
- * @package OkayBueno\LaravelRepositories
+ * @package OkayBueno\Repositories
  */
 interface RepositoryInterface
 {
@@ -106,7 +106,8 @@ interface RepositoryInterface
      * @param array $data Fields & new values to be updated on the entity/entities.
      * @param $value mixed Value used for the filter.
      * @param string $field Field on the database that you will filter by. Default: id.
-     * @return mixed Model|NULL An Eloquent object representing the updated entity, NULL in case of error.
+     * @return mixed Model|NULL|integer An Eloquent object representing the updated entity, a number of entities updated if mass updating,
+     * or NULL in case of error.
      */
     public function updateBy( array $data, $value = NULL, $field = 'id' );
 

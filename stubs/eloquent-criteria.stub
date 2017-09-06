@@ -2,7 +2,7 @@
 
 namespace {{criteriaNamespace}};
 
-use OkayBueno\LaravelRepositories\Criteria\CriteriaInterface;
+use OkayBueno\Repositories\Criteria\CriteriaInterface;
 
 /**
  * Class {{criteriaClassName}}

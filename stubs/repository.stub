@@ -1,0 +1,24 @@
+<?php
+
+namespace {{repositoryClassNamespace}};
+
+use {{parentRepositoryClassNamespace}}\{{parentRepositoryClassName}};
+use {{modelNamespace}}\{{modelName}};
+use {{repositoryInterfaceNamespace}}\{{repositoryInterfaceName}};
+
+/**
+ * Class {{repositoryClassName}}
+ * @package {{repositoryClassNamespace}}
+ */
+class {{repositoryClassName}} extends {{parentRepositoryClassName}} implements {{repositoryInterfaceName}}
+{
+
+    /**
+     * @param {{modelName}} $model
+     */
+    public function __construct( {{modelName}} $model )
+    {
+        parent::__construct( $model );
+    }
+
+}

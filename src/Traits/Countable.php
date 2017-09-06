@@ -1,12 +1,12 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\src\Traits;
+namespace OkayBueno\Repositories\src\Traits;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Countable
- * @package OkayBueno\LaravelRepositories\Traits
+ * @package OkayBueno\Repositories\Traits
  */
 trait Countable
 {

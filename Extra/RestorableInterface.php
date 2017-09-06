@@ -1,10 +1,10 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\Extra;
+namespace OkayBueno\Repositories\Extra;
 
 /**
  * Interface RestorableInterface
- * @package OkayBueno\LaravelRepositories\Extra
+ * @package OkayBueno\Repositories\Extra
  */
 interface RestorableInterface
 {

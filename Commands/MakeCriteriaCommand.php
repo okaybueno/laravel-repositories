@@ -1,35 +1,24 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\Commands;
+namespace OkayBueno\Repositories\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
 /**
  * Class MakeCriteriaCommand
- * @package OkayBueno\LaravelRepositories\Commands
+ * @package OkayBueno\Repositories\Commands
  */
-class MakeCriteriaCommand extends Command
+class MakeCriteriaCommand extends MakeBaseCommand
 {
 
-    protected $signature = 'make:criteria {criteria-name} {--folder=}';
+    protected $signature = 'make:criteria {criteria} {--implementation}';
     protected $description = 'Create a new criteria.';
 
-    protected $filesystem;
-    private $composer;
-
-
-    /**
-     * @param Filesystem $filesystem
-     */
-    public function __construct(
-        Filesystem $filesystem
-    )
-    {
-        parent::__construct();
-        $this->filesystem = $filesystem;
-        $this->composer = app()['composer'];
-    }
+    private $implementation;
+    private $criteriaClassName;
+    private $criteriaClassNamespace;
+    private $criteriaFolder;
 
     /**
      * Execute the console command.
@@ -38,10 +27,11 @@ class MakeCriteriaCommand extends Command
      */
     public function fire()
     {
-        $criteriaName = $this->argument('criteria-name');
-        $folderName = $this->option('folder');
+        $criteria = $this->argument('criteria');
+        $implementation = strtolower( $this->option('implementation') );
 
-        $this->createCriteria( $criteriaName, $folderName );
+        $this->populateValuesForProperties( $criteria, $implementation );
+        $this->createCriteria();
 
         $this->info('Generating autoload...');
         $this->composer->dumpAutoloads();
@@ -50,58 +40,58 @@ class MakeCriteriaCommand extends Command
 
 
     /**
-     * @param $path
+     * @param $criteria
+     * @param $implementation
      */
-    protected function makeDirectory( $path )
+    protected function populateValuesForProperties( $criteria, $implementation )
     {
-        if ( !$this->filesystem->isDirectory( $path ) )
-        {
-            $this->filesystem->makeDirectory( $path, 0775, true, true);
-        }
+        $this->implementation = $implementation ? $implementation : $this->findDefaultImplementation();
+
+        $criteriaNameForFolder = str_replace('\\', '/', $criteria );
+        $this->criteriaFolder = ucfirst( $this->implementation );
+
+        $folder = pathinfo( $criteriaNameForFolder , PATHINFO_DIRNAME );;
+        if ( $folder ) $this->criteriaFolder .= '/'.$folder;
+
+        $this->criteriaClassName = pathinfo( $criteriaNameForFolder , PATHINFO_FILENAME );
+        $this->criteriaClassNamespace = rtrim( config( 'repositories.criterias_namespace' ), '\\' ) . '\\' . str_replace( '/', '\\', $this->criteriaFolder );
     }
 
-
     /**
-     * @param $criteriaName
-     * @param null $folder
-     * @param string $implementation
+     *
      */
-    protected function createCriteria( $criteriaName, $folder = NULL, $implementation = 'Eloquent' )
+    protected function createCriteria()
     {
-        $basePath = config( 'repositories.criteria_path' ).'/'.$implementation;
+        $basePath = config( 'repositories.criterias_path' );
 
-        if ( $folder ) $basePath .= '/'.$folder;
+        if ( $this->criteriaFolder ) $basePath .= '/'.$this->criteriaFolder;
 
         $this->makeDirectory( $basePath );
 
-        $criteriaFilePath = $basePath .'/'.$criteriaName.'.php';
+        $criteriaFilePath = $basePath .'/'.$this->criteriaClassName.'.php';
 
         if ( !$this->filesystem->exists( $criteriaFilePath ) )
         {
             // Read the stub and replace
-            $this->filesystem->put( $criteriaFilePath, $this->compileCriteriaStub( $criteriaName, $folder, $implementation ) );
-            $this->info("Criteria '$criteriaName' created successfully in '$criteriaFilePath'.");
+            $this->filesystem->put( $criteriaFilePath, $this->compileCriteriaStub() );
+            $this->info("Criteria '$this->criteriaClassName' created successfully in '$criteriaFilePath'.");
             $this->composer->dumpAutoloads();
         } else
         {
-            $this->error("The criteria '$criteriaName' already exists in '$criteriaFilePath.");
+            $this->error("The criteria '$this->criteriaClassName' already exists in '$criteriaFilePath.");
         }
     }
 
 
     /**
-     * @param $criteriaName
-     * @param null $folder
-     * @param string $implementation
      * @return mixed|string
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    protected function compileCriteriaStub( $criteriaName, $folder = NULL, $implementation = 'Eloquent' )
+    protected function compileCriteriaStub( )
     {
         $stub = $this->filesystem->get(__DIR__ . '/../stubs/eloquent-criteria.stub');
 
-        $stub = $this->replaceCriteriaNamespace( $stub, $folder, $implementation );
-        $stub = $this->replaceCriteriaName( $stub, $criteriaName );
+        $stub = $this->replaceCriteriaNamespace( $stub );
+        $stub = $this->replaceCriteriaName( $stub );
 
         return $stub;
     }
@@ -109,28 +99,20 @@ class MakeCriteriaCommand extends Command
 
     /**
      * @param $stub
-     * @param null $folder
-     * @param string $implementation
      * @return mixed
      */
-    private function replaceCriteriaNamespace( $stub, $folder = NULL, $implementation = 'Eloquent' )
+    private function replaceCriteriaNamespace( $stub )
     {
-        $interfaceNamespace = rtrim( config( 'repositories.criteria_namespace' ), '\\' );
-
-        if ( $implementation ) $interfaceNamespace .= '\\' . $implementation;
-        if ( $folder ) $interfaceNamespace .= '\\' . $folder;
-
-        return str_replace('{{criteriaNamespace}}', $interfaceNamespace, $stub);
+        return str_replace('{{criteriaNamespace}}', $this->criteriaClassNamespace, $stub);
     }
 
     /**
      * @param $stub
-     * @param $criteriaName
      * @return mixed
      */
-    private function replaceCriteriaName( $stub, $criteriaName )
+    private function replaceCriteriaName( $stub )
     {
-        return str_replace('{{criteriaClassName}}', $criteriaName, $stub);
+        return str_replace('{{criteriaClassName}}', $this->criteriaClassName, $stub);
     }
 
 }

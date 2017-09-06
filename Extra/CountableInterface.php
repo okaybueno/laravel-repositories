@@ -1,12 +1,12 @@
 <?php
 
-namespace OkayBueno\LaravelRepositories\Extra;
+namespace OkayBueno\Repositories\Extra;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Interface CountableInterface
- * @package OkayBueno\LaravelRepositories
+ * @package OkayBueno\Repositories
  */
 interface CountableInterface
 {
