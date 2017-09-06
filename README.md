@@ -2,6 +2,11 @@
 
 A package that provides a neat implementation for integrating the Repository pattern with Laravel &amp; Eloquent.
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/okaybueno/laravel-repositories.svg?style=flat-square)](https://packagist.org/packages/okaybueno/laravel-repositories)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Quality Score](https://img.shields.io/scrutinizer/g/okaybueno/laravel-repositories.svg?style=flat-square)](https://scrutinizer-ci.com/g/okaybueno/laravel-repositories)
+[![Total Downloads](https://img.shields.io/packagist/dt/okaybueno/laravel-repositories.svg?style=flat-square)](https://packagist.org/packages/okaybueno/laravel-repositories)
+
 ## Disclaimer
 
 This package was originally released [here](https://github.com/followloop/laravel-repositories), but since the future 
@@ -505,4 +510,4 @@ explicitly mapped will be mapped to the default driver (eloquent):
 
 ## License
 
-[MIT](https://opensource.org/licenses/MIT)
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
