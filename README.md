@@ -483,7 +483,8 @@ explicitly mapped will be mapped to the default driver (eloquent):
 
 ## Changelog
 
---No official version released--
+##### v1.0.0:
+- First public official version released. Basic repository functionality inherited from main package.
 
 
 ## Credits
@@ -498,7 +499,10 @@ explicitly mapped will be mapped to the default driver (eloquent):
 * Found a bug? That's good (and bad). Let me know using the Issues on Github.
 * Need a feature or have something interesting to contribute with? Great! Open a pull request.
 
+## To-dos
+
+- Automated tests: Although this package has been heavily tested (even on production), there are no automated tests in place.
 
 ## License
 
-TBD.
+[MIT](https://opensource.org/licenses/MIT)
