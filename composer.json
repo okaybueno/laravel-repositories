@@ -1,6 +1,8 @@
 {
     "name": "okaybueno/laravel-repositories",
     "description": "A package that provides a neat implementation to integrate the Repository pattern in Laravel with Eloquent.",
+    "keywords": ["eloquent", "php", "repository", "laravel"],
+    "license": "MIT",
     "authors": [
         {
             "name": "Jesús Espejo",
