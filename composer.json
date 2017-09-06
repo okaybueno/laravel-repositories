@@ -21,5 +21,12 @@
         "psr-4": {
             "OkayBueno\\Repositories\\": ""
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "OkayBueno\\Repositories\\RepositoryServiceProvider"
+            ]
+        }
     }
 }
