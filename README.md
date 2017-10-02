@@ -488,6 +488,9 @@ explicitly mapped will be mapped to the default driver (eloquent):
 
 ## Changelog
 
+##### v1.0.1:
+- Small bug that made auto-load a pain in the ass was fixed.
+
 ##### v1.0.0:
 - First public official version released. Basic repository functionality inherited from main package.
 
