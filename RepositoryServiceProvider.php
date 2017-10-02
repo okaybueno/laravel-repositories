@@ -10,9 +10,9 @@ use Illuminate\Support\ServiceProvider;
  */
 class RepositoryServiceProvider extends ServiceProvider
 {
-
+    
     private $configPath = '/config/repositories.php';
-
+    
     /**
      *
      */
@@ -22,8 +22,8 @@ class RepositoryServiceProvider extends ServiceProvider
             __DIR__.$this->configPath => config_path('repositories.php'),
         ], 'repositories');
     }
-
-
+    
+    
     /**
      *
      */
@@ -33,16 +33,16 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.$this->configPath , 'repositories'
         );
-
+        
         // Bind the repositories.
         $this->autoBindRepositories();
-
+        
         // And generators.
         $this->registerRepositoryGenerator();
         $this->registerCriteriaGenerator();
     }
-
-
+    
+    
     /**
      *
      */
@@ -54,42 +54,46 @@ class RepositoryServiceProvider extends ServiceProvider
         $skipRepositories = config( 'repositories.skip' );
         $implementationBindings = config( 'repositories.bindings' );
         $implementation = $this->findDefaultImplementation( $implementationBindings );
-
-        $allRepos = \File::files( $repositoriesBasePath );
-
-        foreach( $allRepos as $repo )
+        
+        if ( \File::exists( $repositoriesBasePath ) )
         {
-            $interfaceName = pathinfo( $repo, PATHINFO_FILENAME );
-            if ( in_array( $interfaceName, $skipRepositories ) ) continue;
-            else
+            $allRepos = \File::files( $repositoriesBasePath );
+            
+            foreach( $allRepos as $repo )
             {
-                $commonName = str_replace( 'Interface', '', $interfaceName );
-                $interfaceFullClassName = $baseNamespace.$interfaceName;
-
-                foreach( $implementationBindings as $engine => $bindRepositories )
+                $interfaceName = pathinfo( $repo, PATHINFO_FILENAME );
+                if ( in_array( $interfaceName, $skipRepositories ) ) continue;
+                else
                 {
-                    if ( $bindRepositories === 'default' ) continue;
-                    else if ( in_array( $interfaceName, $bindRepositories ) )
+                    $commonName = str_replace( 'Interface', '', $interfaceName );
+                    $interfaceFullClassName = $baseNamespace.$interfaceName;
+                    
+                    foreach( $implementationBindings as $engine => $bindRepositories )
                     {
-                        $implementation = $engine;
-                        break;
+                        if ( $bindRepositories === 'default' ) continue;
+                        else if ( in_array( $interfaceName, $bindRepositories ) )
+                        {
+                            $implementation = $engine;
+                            break;
+                        }
                     }
-                }
-
-                $fullClassName = $baseNamespace.$implementation.'\\'.$commonName;
-
-                if ( class_exists( $fullClassName ) )
-                {
-                    // Bind the class.
-                    $this->app->bind( $interfaceFullClassName, function ( $app ) use ( $fullClassName )
+                    
+                    $fullClassName = $baseNamespace.ucfirst( camel_case( $implementation ) ).'\\'.$commonName;
+                    
+                    if ( class_exists( $fullClassName ) )
                     {
-                        return $app->make( $fullClassName );
-                    });
+                        // Bind the class.
+                        $this->app->bind( $interfaceFullClassName, function ( $app ) use ( $fullClassName )
+                        {
+                            return $app->make( $fullClassName );
+                        });
+                    }
                 }
             }
         }
+        
     }
-
+    
     /**
      * @param $implementations
      * @return array|mixed|string
@@ -99,13 +103,13 @@ class RepositoryServiceProvider extends ServiceProvider
         $filtered = array_filter( $implementations, function( $k ) {
             return $k === 'default';
         });
-
+        
         $default = array_keys($filtered);
         $default = is_array( $default ) ? $default[0] : $default;
-
+        
         return $default ? $default : 'eloquent';
     }
-
+    
     /**
      *
      */
@@ -115,11 +119,11 @@ class RepositoryServiceProvider extends ServiceProvider
         {
             return $app['OkayBueno\Repositories\Commands\MakeRepositoryCommand'];
         });
-
+        
         $this->commands('command.repository');
     }
-
-
+    
+    
     /**
      *
      */
@@ -129,7 +133,7 @@ class RepositoryServiceProvider extends ServiceProvider
         {
             return $app['OkayBueno\Repositories\Commands\MakeCriteriaCommand'];
         });
-
+        
         $this->commands('command.criteria');
     }
 }
