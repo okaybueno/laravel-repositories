@@ -55,39 +55,43 @@ class RepositoryServiceProvider extends ServiceProvider
         $implementationBindings = config( 'repositories.bindings' );
         $implementation = $this->findDefaultImplementation( $implementationBindings );
 
-        $allRepos = \File::files( $repositoriesBasePath );
-
-        foreach( $allRepos as $repo )
+        if ( \File::exists( $repositoriesBasePath ) )
         {
-            $interfaceName = pathinfo( $repo, PATHINFO_FILENAME );
-            if ( in_array( $interfaceName, $skipRepositories ) ) continue;
-            else
+            $allRepos = \File::files( $repositoriesBasePath );
+    
+            foreach( $allRepos as $repo )
             {
-                $commonName = str_replace( 'Interface', '', $interfaceName );
-                $interfaceFullClassName = $baseNamespace.$interfaceName;
-
-                foreach( $implementationBindings as $engine => $bindRepositories )
+                $interfaceName = pathinfo( $repo, PATHINFO_FILENAME );
+                if ( in_array( $interfaceName, $skipRepositories ) ) continue;
+                else
                 {
-                    if ( $bindRepositories === 'default' ) continue;
-                    else if ( in_array( $interfaceName, $bindRepositories ) )
+                    $commonName = str_replace( 'Interface', '', $interfaceName );
+                    $interfaceFullClassName = $baseNamespace.$interfaceName;
+            
+                    foreach( $implementationBindings as $engine => $bindRepositories )
                     {
-                        $implementation = $engine;
-                        break;
+                        if ( $bindRepositories === 'default' ) continue;
+                        else if ( in_array( $interfaceName, $bindRepositories ) )
+                        {
+                            $implementation = $engine;
+                            break;
+                        }
                     }
-                }
-
-                $fullClassName = $baseNamespace.$implementation.'\\'.$commonName;
-
-                if ( class_exists( $fullClassName ) )
-                {
-                    // Bind the class.
-                    $this->app->bind( $interfaceFullClassName, function ( $app ) use ( $fullClassName )
+            
+                    $fullClassName = $baseNamespace.ucfirst( camel_case( $implementation ) ).'\\'.$commonName;
+            
+                    if ( class_exists( $fullClassName ) )
                     {
-                        return $app->make( $fullClassName );
-                    });
+                        // Bind the class.
+                        $this->app->bind( $interfaceFullClassName, function ( $app ) use ( $fullClassName )
+                        {
+                            return $app->make( $fullClassName );
+                        });
+                    }
                 }
             }
         }
+        
     }
 
     /**
