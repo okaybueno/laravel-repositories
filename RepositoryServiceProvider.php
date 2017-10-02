@@ -10,9 +10,9 @@ use Illuminate\Support\ServiceProvider;
  */
 class RepositoryServiceProvider extends ServiceProvider
 {
-
+    
     private $configPath = '/config/repositories.php';
-
+    
     /**
      *
      */
@@ -22,8 +22,8 @@ class RepositoryServiceProvider extends ServiceProvider
             __DIR__.$this->configPath => config_path('repositories.php'),
         ], 'repositories');
     }
-
-
+    
+    
     /**
      *
      */
@@ -33,16 +33,16 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.$this->configPath , 'repositories'
         );
-
+        
         // Bind the repositories.
         $this->autoBindRepositories();
-
+        
         // And generators.
         $this->registerRepositoryGenerator();
         $this->registerCriteriaGenerator();
     }
-
-
+    
+    
     /**
      *
      */
@@ -54,11 +54,11 @@ class RepositoryServiceProvider extends ServiceProvider
         $skipRepositories = config( 'repositories.skip' );
         $implementationBindings = config( 'repositories.bindings' );
         $implementation = $this->findDefaultImplementation( $implementationBindings );
-
+        
         if ( \File::exists( $repositoriesBasePath ) )
         {
             $allRepos = \File::files( $repositoriesBasePath );
-    
+            
             foreach( $allRepos as $repo )
             {
                 $interfaceName = pathinfo( $repo, PATHINFO_FILENAME );
@@ -67,7 +67,7 @@ class RepositoryServiceProvider extends ServiceProvider
                 {
                     $commonName = str_replace( 'Interface', '', $interfaceName );
                     $interfaceFullClassName = $baseNamespace.$interfaceName;
-            
+                    
                     foreach( $implementationBindings as $engine => $bindRepositories )
                     {
                         if ( $bindRepositories === 'default' ) continue;
@@ -77,9 +77,9 @@ class RepositoryServiceProvider extends ServiceProvider
                             break;
                         }
                     }
-            
+                    
                     $fullClassName = $baseNamespace.ucfirst( camel_case( $implementation ) ).'\\'.$commonName;
-            
+                    
                     if ( class_exists( $fullClassName ) )
                     {
                         // Bind the class.
@@ -93,7 +93,7 @@ class RepositoryServiceProvider extends ServiceProvider
         }
         
     }
-
+    
     /**
      * @param $implementations
      * @return array|mixed|string
@@ -103,13 +103,13 @@ class RepositoryServiceProvider extends ServiceProvider
         $filtered = array_filter( $implementations, function( $k ) {
             return $k === 'default';
         });
-
+        
         $default = array_keys($filtered);
         $default = is_array( $default ) ? $default[0] : $default;
-
+        
         return $default ? $default : 'eloquent';
     }
-
+    
     /**
      *
      */
@@ -119,11 +119,11 @@ class RepositoryServiceProvider extends ServiceProvider
         {
             return $app['OkayBueno\Repositories\Commands\MakeRepositoryCommand'];
         });
-
+        
         $this->commands('command.repository');
     }
-
-
+    
+    
     /**
      *
      */
@@ -133,7 +133,7 @@ class RepositoryServiceProvider extends ServiceProvider
         {
             return $app['OkayBueno\Repositories\Commands\MakeCriteriaCommand'];
         });
-
+        
         $this->commands('command.criteria');
     }
 }
