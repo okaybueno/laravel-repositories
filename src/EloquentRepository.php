@@ -12,28 +12,28 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class EloquentRepository implements RepositoryInterface
 {
-
+    
     protected $model;
     protected $with;
     protected $skipCriteria;
     protected $criteria;
     private $modelClassName;
-
+    
     /**
      * @param Model $model
      */
     public function __construct( Model $model )
     {
         $this->model = $model;
-
+        
         // A clean copy of the model is needed when the scope needs to be reset.
         $reflex = new \ReflectionClass( $model );
         $this->modelClassName = $reflex->getName();
-
+        
         $this->skipCriteria = FALSE;
         $this->criteria = [];
     }
-
+    
     /**
      * @param $value
      * @param string $field
@@ -44,16 +44,16 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         $this->eagerLoadRelations();
         $this->applyCriteria();
-
+        
         if ( !is_null( $value ) ) $this->model = $this->model->where( $field, $value );
-
+        
         $result = $this->model->first( $columns );
-
+        
         $this->resetScope();
-
+        
         return $result;
     }
-
+    
     /**
      * @param null $value
      * @param null $field
@@ -64,16 +64,16 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         $this->eagerLoadRelations();
         $this->applyCriteria();
-
+        
         if ( !is_null( $value ) && !is_null( $field ) ) $this->model = $this->model->where( $field, $value );
-
+        
         $result = $this->model->get( $columns );
-
+        
         $this->resetScope();
-
+        
         return $result;
     }
-
+    
     /**
      * @param array $value
      * @param string $field
@@ -85,12 +85,12 @@ abstract class EloquentRepository implements RepositoryInterface
         $this->eagerLoadRelations();
         $this->applyCriteria();
         $result = $this->model->whereIn( $field, $value )->get( $columns );
-
+        
         $this->resetScope();
-
+        
         return $result;
     }
-
+    
     /**
      * @param array $columns
      * @return \Illuminate\Database\Eloquent\Collection|static[]
@@ -99,12 +99,12 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         $this->eagerLoadRelations();
         $result = $this->model->all( $columns );
-
+        
         $this->resetScope();
-
+        
         return $result;
     }
-
+    
     /**
      * @param array|string $relations
      * @return $this
@@ -112,13 +112,13 @@ abstract class EloquentRepository implements RepositoryInterface
     public function with( $relations )
     {
         if ( is_string( $relations ) ) $relations = func_get_args();
-
+        
         $this->with = $relations;
-
+        
         return $this;
     }
-
-
+    
+    
     /**
      * @param CriteriaInterface $criteria
      * @return $this
@@ -126,11 +126,11 @@ abstract class EloquentRepository implements RepositoryInterface
     public function addCriteria( CriteriaInterface $criteria)
     {
         $this->criteria[] = $criteria;
-
+        
         return $this;
     }
-
-
+    
+    
     /**
      * @param bool $status
      * @return $this
@@ -140,8 +140,8 @@ abstract class EloquentRepository implements RepositoryInterface
         $this->skipCriteria = $status;
         return $this;
     }
-
-
+    
+    
     /**
      * @param int $perPage
      * @param array $columns
@@ -152,13 +152,13 @@ abstract class EloquentRepository implements RepositoryInterface
         $this->eagerLoadRelations();
         $this->applyCriteria();
         $result = $this->model->paginate( $perPage, $columns );
-
+        
         $this->resetScope();
-
+        
         return $result;
     }
-
-
+    
+    
     /**
      * @param int $currentPage
      * @return $this
@@ -169,11 +169,11 @@ abstract class EloquentRepository implements RepositoryInterface
         {
             return $currentPage;
         });
-
+        
         return $this;
     }
-
-
+    
+    
     /**
      * @param array $data
      * @return mixed
@@ -181,14 +181,14 @@ abstract class EloquentRepository implements RepositoryInterface
     public function create(array $data)
     {
         $cleanFields = $this->cleanUnfillableFields( $data );
-
+        
         $createdObject = $this->model->create( $cleanFields );
-
+        
         $this->resetScope();
-
+        
         return $createdObject;
     }
-
+    
     /**
      * @param array $data
      * @param $value
@@ -198,30 +198,28 @@ abstract class EloquentRepository implements RepositoryInterface
     public function updateBy(array $data, $value = NULL, $field = 'id')
     {
         $cleanFields = $this->cleanUnfillableFields( $data );
-
+        
         if ( !is_null( $value ) )
         {
             // Single update.
-            $this->model = $this->model->where( $field, $value);
-
+            $this->model->where( $field, $value)->update( $cleanFields );
+            
             foreach( $cleanFields as $F => $V ) $this->model->{$F} = $V;
-
-            $this->model->save();
-
+            
             $returnedVal = $this->model;
         } else
         {
             // Mass update.
             $this->applyCriteria();
-
+            
             $returnedVal = $this->model->update( $cleanFields );
         }
-
+        
         $this->resetScope();
-
+        
         return $returnedVal;
     }
-
+    
     /**
      * @param null $value
      * @param string $field
@@ -230,19 +228,19 @@ abstract class EloquentRepository implements RepositoryInterface
     public function delete( $value = null, $field = 'id' )
     {
         $this->applyCriteria();
-
+        
         if ( !is_null( $value ) ) $result = $this->model->where( $field, $value )->delete();
         else
         {
             if ( !empty( $this->criteria ) ) $result = $this->model->delete();
             else $result = FALSE;
         }
-
+        
         $this->resetScope();
-
+        
         return (bool)$result;
     }
-
+    
     /**
      * @return mixed
      */
@@ -250,12 +248,12 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         $this->applyCriteria();
         $result = $this->model->count();
-
+        
         $this->resetScope();
-
+        
         return $result;
     }
-
+    
     /**
      * @return $this
      */
@@ -266,7 +264,7 @@ abstract class EloquentRepository implements RepositoryInterface
         $this->model = new $this->modelClassName();
         return $this;
     }
-
+    
     /**
      * @param null $value
      * @param string $field
@@ -275,24 +273,24 @@ abstract class EloquentRepository implements RepositoryInterface
     public function destroy($value = null, $field = 'id')
     {
         $this->applyCriteria();
-
+        
         if ( !is_null( $value ) ) $result = $this->model->where( $field, $value )->forceDelete();
         else
         {
             if ( !empty( $this->criteria ) ) $result = $this->model->forceDelete();
             else $result = FALSE;
         }
-
+        
         $this->resetScope();
-
+        
         return (bool)$result;
     }
-
-
+    
+    
     /*******************************************************************************************************************
      *******************************************************************************************************************
      *******************************************************************************************************************/
-
+    
     /**
      *
      */
@@ -300,8 +298,8 @@ abstract class EloquentRepository implements RepositoryInterface
     {
         if ( is_array( $this->with ) ) $this->model->with( $this->with );
     }
-
-
+    
+    
     /**
      * @param array $data
      * @return array
@@ -309,15 +307,15 @@ abstract class EloquentRepository implements RepositoryInterface
     private function cleanUnfillableFields( array $data )
     {
         $fillableFields = $this->model->getFillable();
-
+        
         foreach( $data as $key => $value )
         {
             if ( !in_array( $key, $fillableFields ) ) unset( $data[ $key ] );
         }
-
+        
         return $data;
     }
-
+    
     /**
      * @return $this
      */
@@ -330,9 +328,9 @@ abstract class EloquentRepository implements RepositoryInterface
                 if( $criteria instanceof CriteriaInterface ) $this->model = $criteria->apply( $this->model, $this );
             }
         }
-
+        
         return $this;
     }
-
-
+    
+    
 }
