@@ -25,7 +25,7 @@ class MakeCriteriaCommand extends MakeBaseCommand
      *
      * @return mixed
      */
-    public function fire()
+    public function handle()
     {
         $criteria = $this->argument('criteria');
         $implementation = strtolower( $this->option('implementation') );
