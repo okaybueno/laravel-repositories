@@ -488,6 +488,9 @@ explicitly mapped will be mapped to the default driver (eloquent):
 
 ## Changelog
 
+##### v1.0.2:
+- Error on calling updateBy() with laravel 5.5 was fixed.
+
 ##### v1.0.1:
 - Small bug that made auto-load a pain in the ass was fixed.
 
