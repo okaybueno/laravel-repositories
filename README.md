@@ -488,6 +488,9 @@ explicitly mapped will be mapped to the default driver (eloquent):
 
 ## Changelog
 
+##### v1.0.4:
+- Fixes bug when loading different engines simultaneously on Laravel 5.5.
+
 ##### v1.0.3:
 - Bug on generators on Laravel 5.5 was fixed.
 

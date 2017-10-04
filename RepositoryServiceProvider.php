@@ -53,7 +53,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $baseNamespace = rtrim( config( 'repositories.repository_interfaces_namespace' ), '\\' ) . '\\';
         $skipRepositories = config( 'repositories.skip' );
         $implementationBindings = config( 'repositories.bindings' );
-        $implementation = $this->findDefaultImplementation( $implementationBindings );
+        $defaultImplementation = $this->findDefaultImplementation( $implementationBindings );
         
         if ( \File::exists( $repositoriesBasePath ) )
         {
@@ -61,6 +61,7 @@ class RepositoryServiceProvider extends ServiceProvider
             
             foreach( $allRepos as $repo )
             {
+                $implementation = $defaultImplementation;
                 $interfaceName = pathinfo( $repo, PATHINFO_FILENAME );
                 if ( in_array( $interfaceName, $skipRepositories ) ) continue;
                 else
