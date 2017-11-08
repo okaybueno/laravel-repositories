@@ -296,7 +296,7 @@ abstract class EloquentRepository implements RepositoryInterface
      */
     protected function eagerLoadRelations()
     {
-        if ( is_array( $this->with ) ) $this->model->with( $this->with );
+        if ( is_array( $this->with ) ) $this->model = $this->model->with( $this->with );
     }
     
     
