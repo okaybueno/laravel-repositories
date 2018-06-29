@@ -9,7 +9,7 @@ A package that provides a neat implementation for integrating the Repository pat
 
 ## Disclaimer
 
-This package was originally released [here](https://github.com/followloop/laravel-repositories), but since the future 
+This package was originally released [here](https://github.com/followloop/laravel-repositories), but since the future
 of that package is not clear, it has been forked and re-worked under this repository.
 
 ## Goal
@@ -29,7 +29,7 @@ it provides it it's using a `RepositoryInterface` and a basic `Repository` imple
 ## Installation
 
 1. Install this package by adding it to your `composer.json` or by running `composer require okaybueno/laravel-repositories` in your project's folder.
-2. For Laravel 5.5 the Service provider is automatically registered, but if you're using Laravel 5.4, then you must add the 
+2. For Laravel 5.5 the Service provider is automatically registered, but if you're using Laravel 5.4, then you must add the
 provider to your `config/app.php` file: `OkayBueno\Repositories\RepositoryServiceProvider::class`
 3. Publish the configuration file by running `php artisan vendor:publish --provider="OkayBueno\Repositories\RepositoryServiceProvider"`
 4. Open the configuration file (`config/repositories.php`) and configure paths according to your needs.
@@ -56,7 +56,7 @@ the "app" folder: app/MyWebApp/Repositories.
 
 At the root of this folder we'll have all our interfaces following the next name convention: `[RepositoryName]Interface.php`
 
-**NOTE**: It does not really matter the name that we use as long as we use "Interface" as suffix. This is important because the 
+**NOTE**: It does not really matter the name that we use as long as we use "Interface" as suffix. This is important because the
 auto binder will try to find all files matching this pattern.
 
 Inside this Repositories folder, we must have another folder called Eloquent, that will contain all our implementations for
@@ -111,7 +111,7 @@ class UserRepository extends EloquentRepository implements UserRepositoryInterfa
     public function __construct( User $user ) {
         parent::__construct( $user );
     }
-    
+
     // methods that your repository should implement...
 }
 
@@ -122,11 +122,11 @@ Now we need to configure the `config/repositories.php` file to match our paths a
 ```php
 
     'repository_interfaces_namespace' => 'MyApp\Repositories',
-    
+
     'criterias_namespace' => 'MyApp\Repositories\Criteria',
 
     'repositories_path' => app_path('MyApp/Repositories'),
-    
+
     'criterias_path' => app_path('MyApp/Repositories/Criteria'),
 
 ```
@@ -150,7 +150,7 @@ class UsersService implements UserServicesInterface  {
     public function __construct( UserRepositoryInterface $usersRepositoryInterface ) {
         $this->usersRepository = $usersRepositoryInterface;
     }
-   
+
     // other methods in your service.
 }
 
@@ -332,21 +332,21 @@ class RegisteredVia implements CriteriaInterface  {
     protected $onlyActive;
 
     public function __construct( $registeredVia, $onlyActive = TRUE ) {
-    
+
         $this->registeredVia = $registeredVia;
         $this->onlyActive = $onlyActive;
-        
+
     }
-    
-    
+
+
     public function apply( $queryBuilder ) {
-    
+
         if ( $this->onlyActive ) $queryBuilder = $queryBuilder->where( 'active', TRUE );
-        
+
         return $queryBuilder->where( 'registered_via', $this->registered_via );
-        
+
     }
-   
+
 }
 ```
 
@@ -356,7 +356,7 @@ Now in your services or controllers you can use this criteria like this:
 ```php
 
     $registeredViaFacebookCriteria = new RegisteredVia( 'facebook' );
-    
+
     return $this->userRepository->addCriteria( $registeredViaFacebookCriteria )->findAllBy();
 ```
 
@@ -367,7 +367,7 @@ We could even chain different criterias:
 
     $registeredViaFacebookCriteria = new RegisteredVia( 'facebook' );
     $orderByCreationDate = new OrderBy( 'created_at', 'ASC' );
-    
+
     return $this->userRepository
                 ->addCriteria( $registeredViaFacebookCriteria )
                 ->addCriteria( $orderByCreationDate )
@@ -388,13 +388,13 @@ We could even chain different criterias:
         [ 'created_at', '<=', $date ],
         [ 'is_premium_user', TRUE ]
     ];
-    
+
     $filterCriteria = new FilterByColumns( $filter );
-    
+
     // This will return all premium users created more than 1 week ago and that have more than 10 (€,$, whatever) of balance.
     $users = $this->userRepository->addCriteria( $filterCriteria )->findAllBy();
 ```
-    
+
 For more complex queries, a custom Criteria must be created.
 
 And now let's jump directly into the cool stuff that will save some time in your end...
@@ -411,8 +411,8 @@ There are 2 generators provided: for repositories and for criteria
 
 Just execute `php artisan make:repository Namespace\\ModelName --implementation=eloquent`
 
-Being `ModelName` the name of the model (class) that you want to generate the repository for. This will generate an 
-interface for this repository, an eloquent implementation implementing that interface and will also inject the model 
+Being `ModelName` the name of the model (class) that you want to generate the repository for. This will generate an
+interface for this repository, an eloquent implementation implementing that interface and will also inject the model
 to the repository. The files will be placed in the directory that you configure in your `repositories.php` config file,
 and will also have the namespace specified there. You can specify the implementation that you want to use, although for now
 just Eloquent is supported out of the box.
@@ -437,35 +437,35 @@ on the model injected. These are the traits available for the different types of
 
 #### Repositories
 
-- *Restorable*: If you are using SoftDelete in your models and want to be able to restore them via the repository, just 
+- *Restorable*: If you are using SoftDelete in your models and want to be able to restore them via the repository, just
 include this trait in your repository. You must also implement the *RestorableInterface* in your repository and your
 repository interface.
-- *Countable*: If you any any column that acts as a counter, you can use this trait to add counting functionalities to 
- your repository (incremente/decrement value in the given amount). You must also implement the *CountableInterface* in 
+- *Countable*: If you any any column that acts as a counter, you can use this trait to add counting functionalities to
+ your repository (incremente/decrement value in the given amount). You must also implement the *CountableInterface* in
  your repository and your repository interface.
- 
+
  ## Extending the package
- 
+
  You can create your own implementations to support, for instance, SQLite or MongoDB. The plan is to add more and more
  engines, but if you need something on your own you can create your own engines.
- 
+
  To add a new engine, its class needs to implement the `RepositoryInterface` interface and all the methods defined there.
  You can place this class wherever you want, as the binding is done manually in the config (`config/repositories.php`) file:
- 
+
  ```php
- 
+
      'supported_implementations' =>  [
              'eloquent' => \OkayBueno\Repositories\src\EloquentRepository::class,
              'mongodb' => \MyApp\Repositories\Custom\MongoDbRepository::Class
          ]
- 
+
  ```
 
 You can also manually specify which repositories should be mapped by this engine. All the repositories which are not
 explicitly mapped will be mapped to the default driver (eloquent):
- 
+
   ```php
-  
+
       'bindings' => [
               'eloquent' => 'default',
               'mongodb' => [
@@ -473,20 +473,23 @@ explicitly mapped will be mapped to the default driver (eloquent):
                    'EventTrackerRepositoryInterface'
               ]
           ],
-  
+
   ```
-  
+
   Of course, you can use the generators to create criterias and repositories:
- 
+
    ```php
-   
+
        php artisan make:repository MyApp\\Models\\Log --implementation=mongodb
-       
+
        php artisan make:criteria Events\\FilterLogsOlderThanAWeek --implementation=mongodb
-   
+
    ```
 
 ## Changelog
+
+##### v1.0.6:
+- Private methods on EloquentRepository made protected to allow overwrite them.
 
 ##### v1.0.5:
 - Fixes bug when using with() to eager-load relations.

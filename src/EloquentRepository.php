@@ -304,7 +304,7 @@ abstract class EloquentRepository implements RepositoryInterface
      * @param array $data
      * @return array
      */
-    private function cleanUnfillableFields( array $data )
+    protected function cleanUnfillableFields( array $data )
     {
         $fillableFields = $this->model->getFillable();
         
@@ -319,7 +319,7 @@ abstract class EloquentRepository implements RepositoryInterface
     /**
      * @return $this
      */
-    private function applyCriteria()
+    protected function applyCriteria()
     {
         if( !$this->skipCriteria )
         {
