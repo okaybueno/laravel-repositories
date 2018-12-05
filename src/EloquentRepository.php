@@ -306,14 +306,11 @@ abstract class EloquentRepository implements RepositoryInterface
      */
     protected function cleanUnfillableFields( array $data )
     {
-        $fillableFields = $this->model->getFillable();
-        
-        foreach( $data as $key => $value )
-        {
-            if ( !in_array( $key, $fillableFields ) ) unset( $data[ $key ] );
-        }
-        
-        return $data;
+        $model = $this->model;
+
+        return array_filter($data, function ($key) use ($model) {
+            return $model->isFillable($key);
+        }, ARRAY_FILTER_USE_KEY);
     }
     
     /**
