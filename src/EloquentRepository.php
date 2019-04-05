@@ -101,6 +101,7 @@ abstract class EloquentRepository implements RepositoryInterface
     public function findAll( array $columns = ['*'] )
     {
         $this->eagerLoadRelations();
+        $this->applyCriteria();
         $result = $this->model->all( $columns );
 
         $this->resetScope();
@@ -314,14 +315,9 @@ abstract class EloquentRepository implements RepositoryInterface
      */
     protected function cleanUnfillableFields( array $data )
     {
-        $fillableFields = $this->model->getFillable();
-
-        foreach( $data as $key => $value )
-        {
-            if ( !in_array( $key, $fillableFields ) ) unset( $data[ $key ] );
-        }
-
-        return $data;
+        return array_filter($data, function ($key) {
+            return $this->model->isFillable($key);
+        }, ARRAY_FILTER_USE_KEY);
     }
 
     /**
@@ -339,6 +335,4 @@ abstract class EloquentRepository implements RepositoryInterface
 
         return $this;
     }
-
-
 }
