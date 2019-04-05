@@ -488,6 +488,9 @@ explicitly mapped will be mapped to the default driver (eloquent):
 
 ## Changelog
 
+##### v1.0.7:
+- New basic Criterias added (OrderByRandom, WhereIn, WhereNotIn, WhereRelationFieldIn, With). Method with() reworked.
+
 ##### v1.0.6:
 - Private methods on EloquentRepository made protected to allow overwrite them.
 
