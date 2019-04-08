@@ -303,8 +303,7 @@ abstract class EloquentRepository implements RepositoryInterface
         if ( is_array( $this->with ) )
         {
             $with = new With( $this->with );
-
-            $this->model = $this->addCriteria( $with );
+            $this->addCriteria( $with );
         }
     }
 
