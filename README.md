@@ -1,3 +1,10 @@
+# IMPORTANT ❗
+**This package has been discontinued and it won't receive any other updates. If you're using it please consider migrating to another solution – or fork it and depend on your own version of package.**
+
+Using the repository pattern on Laravel does not feel good anymore. Laravel has evolved in a great way that made me embrace Eloquent at its maximum level. Comparing what Eloquent offers out of the box versus its implementation via the repository pattern, I found out that adding this intermediate layer ends up in providing _yet one more layer to maintain_ that provides no value whatsoever to the final product or even during the process of development. I was wrong and I'm happy to be back to full Eloquent use.
+
+--- 
+
 # Laravel Repositories
 
 A package that provides a neat implementation for integrating the Repository pattern with Laravel &amp; Eloquent.
