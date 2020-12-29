@@ -3,12 +3,13 @@
 namespace OkayBueno\Repositories;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 /**
  * Class RepositoriesServiceProvider
  * @package OkayBueno\Repositories
  */
-class RepositoryServiceProvider extends ServiceProvider
+class +RepositoryServiceProvider extends ServiceProvider
 {
     
     private $configPath = '/config/repositories.php';
@@ -79,7 +80,7 @@ class RepositoryServiceProvider extends ServiceProvider
                         }
                     }
                     
-                    $fullClassName = $baseNamespace.ucfirst( camel_case( $implementation ) ).'\\'.$commonName;
+                    $fullClassName = $baseNamespace.ucfirst( Str::camel( $implementation ) ).'\\'.$commonName;
                     
                     if ( class_exists( $fullClassName ) )
                     {
