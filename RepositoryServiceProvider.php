@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
  * Class RepositoriesServiceProvider
  * @package OkayBueno\Repositories
  */
-class +RepositoryServiceProvider extends ServiceProvider
+class RepositoryServiceProvider extends ServiceProvider
 {
     
     private $configPath = '/config/repositories.php';
